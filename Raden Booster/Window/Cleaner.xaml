@@ -1,0 +1,306 @@
+﻿<Window x:Class="Raden_Booster.Cleaner"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Raden_Booster"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Cleaner"
+        Height="443.951"
+        Width="556.667"
+        WindowStyle="None"
+        SizeChanged="Window_SizeChanged">
+    <!--Title bar button commands-->
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Close" />
+        <CommandBinding Command="{x:Static SystemCommands.MaximizeWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Maximize" />
+        <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Minimize" />
+        <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Restore" />
+    </Window.CommandBindings>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="25" />
+    </WindowChrome.WindowChrome>
+
+    <Border x:Name="MainWindowBorder"
+            BorderBrush="Black"
+            BorderThickness="0">
+        <Grid x:Name="parentContainer"
+              Background="{StaticResource WindowBackground}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--Window chrome-->
+            <Grid Grid.Row="0"
+                  Height="25"
+                  Background="{StaticResource TitleBarBrush}">
+                <TextBlock Text="{Binding Title,RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor,AncestorLevel=1}}"
+                           TextTrimming="CharacterEllipsis"
+                           FontFamily="Arial"
+                           Foreground="{StaticResource WindowForeground}"
+                           TextAlignment="Center"
+                           Margin="0,5,0,0"
+                           Padding="0"
+                           Name="txtTitle" />
+                <!--Caption buttons-->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Name="TitleButtons">
+                    <Button Style="{StaticResource MinimizeButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Minimize"
+                            Command="{x:Static SystemCommands.MinimizeWindowCommand}" />
+                    <Button x:Name="RestoreButton"
+                            Visibility="Collapsed"
+                            Style="{StaticResource RestoreButtonStyle}"
+                            Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Restore" />
+                    <Button Style="{StaticResource CloseButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Close"
+                            Command="{x:Static SystemCommands.CloseWindowCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <!--App content-->
+            <Border Grid.Row="2"
+                    x:Name="AppArea">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Junk Cleaner"
+                           Foreground="{StaticResource WindowForegroundWhite}"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Center"
+                           FontFamily="Bahnschrift"
+                           Margin="0 40 0 0"
+                           FontSize="24"></Label>
+                    <Label x:Name="lbl_info"
+                           Foreground="{StaticResource WindowForeground}"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Center"
+                           FontFamily="Bahnschrift"
+                           Margin="0 70 0 0"
+                           FontSize="12">Press Scan to start scanning!</Label>
+                    <TextBlock Name="path"
+                               Margin="10,100,10,0"
+                               Foreground="{StaticResource WindowForeground}"
+                               FontSize="12"
+                               VerticalAlignment="Top"
+                               FontFamily="Bahnschrift"
+                               TextTrimming="CharacterEllipsis"></TextBlock>
+                    <StackPanel Margin="10,129,10,0"
+                                VerticalAlignment="Top"
+                                Orientation="Vertical">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="chkbox_recycle"
+                                          Checked="Checkbox_CheckedChanged"
+                                          Unchecked="Checkbox_CheckedChanged"
+                                          IsChecked="True" />
+                                <Label Foreground="{StaticResource WindowForeground}"
+                                       FontSize="18"
+                                       FontFamily="Bahnschrift">Recycle Bin</Label>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right">
+                                <Label Name="recyclebin"
+                                       Foreground="{StaticResource WindowForegroundWhite}"
+                                       FontSize="18"
+                                       HorizontalAlignment="Right"
+                                       FontFamily="Bahnschrift">0 MB</Label>
+                                <ProgressBar x:Name="prog_recycle"
+                                             Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                             Value="0"
+                                             Visibility="Collapsed"
+                                             IsIndeterminate="True"
+                                             Foreground="{StaticResource WindowForegroundWhite}" />
+                                <materialDesign:PackIcon x:Name="warn_recycle"
+                                                         Kind="AlertCircleOutline"
+                                                         Foreground="Red"
+                                                         VerticalAlignment="Center"
+                                                         Visibility="Collapsed"
+                                                         Height="20"
+                                                         Width="20" />
+                                <materialDesign:PackIcon x:Name="check_recycle"
+                                                         Kind="ProgressCheck"
+                                                         Foreground="LightGreen"
+                                                         Visibility="Collapsed"
+                                                         VerticalAlignment="Center"
+                                                         Height="20"
+                                                         Width="20" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="chkbox_usertemp"
+                                          Checked="Checkbox_CheckedChanged"
+                                          Unchecked="Checkbox_CheckedChanged"
+                                          IsChecked="False" />
+                                <Label Foreground="{StaticResource WindowForeground}"
+                                       FontSize="18"
+                                       FontFamily="Bahnschrift">User Temp</Label>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right">
+                                <Label Name="usertemp"
+                                       Foreground="{StaticResource WindowForegroundWhite}"
+                                       FontSize="18"
+                                       HorizontalAlignment="Right"
+                                       FontFamily="Bahnschrift">0 MB</Label>
+                                <ProgressBar x:Name="prog_usertemp"
+                                             Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                             Value="0"
+                                             Visibility="Collapsed"
+                                             IsIndeterminate="True"
+                                             Foreground="{StaticResource WindowForegroundWhite}" />
+                                <materialDesign:PackIcon x:Name="warn_usertemp"
+                                                         Kind="AlertCircleOutline"
+                                                         Foreground="Red"
+                                                         VerticalAlignment="Center"
+                                                         Visibility="Collapsed"
+                                                         Height="20"
+                                                         Width="20" />
+                                <materialDesign:PackIcon x:Name="check_usertemp"
+                                                         Kind="ProgressCheck"
+                                                         Foreground="LightGreen"
+                                                         Visibility="Collapsed"
+                                                         VerticalAlignment="Center"
+                                                         Height="20"
+                                                         Width="20" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="chkbox_wintemp"
+                                          Checked="Checkbox_CheckedChanged"
+                                          Unchecked="Checkbox_CheckedChanged"
+                                          IsChecked="False" />
+                                <Label Foreground="{StaticResource WindowForeground}"
+                                       FontSize="18"
+                                       FontFamily="Bahnschrift">Windows Temp</Label>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right">
+                                <Label Name="windowstemp"
+                                       Foreground="{StaticResource WindowForegroundWhite}"
+                                       FontSize="18"
+                                       HorizontalAlignment="Right"
+                                       FontFamily="Bahnschrift">0 MB</Label>
+                                <ProgressBar x:Name="prog_wintemp"
+                                             Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                             Value="0"
+                                             Visibility="Collapsed"
+                                             IsIndeterminate="True"
+                                             Foreground="{StaticResource WindowForegroundWhite}" />
+                                <materialDesign:PackIcon x:Name="warn_windowstemp"
+                                                         Kind="AlertCircleOutline"
+                                                         Foreground="Red"
+                                                         VerticalAlignment="Center"
+                                                         Visibility="Collapsed"
+                                                         Height="20"
+                                                         Width="20" />
+                                <materialDesign:PackIcon x:Name="check_windowstemp"
+                                                         Kind="ProgressCheck"
+                                                         Foreground="LightGreen"
+                                                         Visibility="Collapsed"
+                                                         VerticalAlignment="Center"
+                                                         Height="20"
+                                                         Width="20" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="chkbox_browsercache"
+                                          Checked="Checkbox_CheckedChanged"
+                                          Unchecked="Checkbox_CheckedChanged"
+                                          IsChecked="True" />
+                                <Label Foreground="{StaticResource WindowForeground}"
+                                       FontSize="18"
+                                       FontFamily="Bahnschrift">Browser Cache</Label>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right">
+                                <Label Name="browser"
+                                       Foreground="{StaticResource WindowForegroundWhite}"
+                                       FontSize="18"
+                                       HorizontalAlignment="Right"
+                                       FontFamily="Bahnschrift">0 MB</Label>
+                                <ProgressBar x:Name="prog_browser"
+                                             Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                             Value="0"
+                                             Visibility="Collapsed"
+                                             IsIndeterminate="True"
+                                             Foreground="{StaticResource WindowForegroundWhite}" />
+                                <materialDesign:PackIcon x:Name="warn_browser"
+                                                         Kind="AlertCircleOutline"
+                                                         Foreground="Red"
+                                                         VerticalAlignment="Center"
+                                                         Visibility="Collapsed"
+                                                         Height="20"
+                                                         Width="20" />
+                                <materialDesign:PackIcon x:Name="check_browser"
+                                                         Kind="ProgressCheck"
+                                                         Foreground="LightGreen"
+                                                         Visibility="Collapsed"
+                                                         VerticalAlignment="Center"
+                                                         Height="20"
+                                                         Width="20" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                    <Label Foreground="{StaticResource WindowForeground}"
+                           Margin="10 5"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left"
+                           FontSize="18"
+                           Grid.Row="1"
+                           FontFamily="Bahnschrift">Total Junk to Remove</Label>
+                    <Label x:Name="lbl_total"
+                           Foreground="{StaticResource WindowForegroundWhite}"
+                           Margin="200 5"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left"
+                           FontSize="18"
+                           Grid.Row="1"
+                           FontFamily="Bahnschrift">0 B</Label>
+                    <Button x:Name="btn_scan"
+                            Grid.Row="2"
+                            Width="120"
+                            Margin="10,10,0,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            FontFamily="Bahnschrift"
+                            Click="Button_Click">Scan</Button>
+                    <Button x:Name="btn_clean"
+                            Width="120"
+                            HorizontalAlignment="Right"
+                            Margin="0 10 10 0"
+                            IsEnabled="False"
+                            Grid.Row="2"
+                            VerticalAlignment="Top"
+                            FontFamily="Bahnschrift"
+                            Click="Button_Click">Clean</Button>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

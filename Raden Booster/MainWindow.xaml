@@ -1,0 +1,373 @@
+﻿<Window x:Class="Raden_Booster.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Raden_Booster"
+        xmlns:DesignInControl="clr-namespace:Raden_Booster.Controls"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="RADEN BOOSTER"
+        Height="378"
+        Width="623"
+        WindowStyle="None"
+        SizeChanged="Window_SizeChanged"
+        Icon="Images/Logo.png"
+        Unloaded="Window_Unloaded"
+        IsVisibleChanged="Window_IsVisibleChanged">
+    <Window.Resources>
+        <ResourceDictionary>
+            <local:MultiplyValueConverter x:Key="MultiplyConverter"></local:MultiplyValueConverter>
+            <Storyboard x:Key="progressAni">
+                <DoubleAnimation Duration="0:0:1"
+                                 From="0"
+                                 To="100"
+                                 FillBehavior="HoldEnd"
+                                 Storyboard.TargetName="ProgressBar1"
+                                 Storyboard.TargetProperty="Percentage" />
+            </Storyboard>
+            
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily"
+                        Value="Bahnschrift" />
+            </Style>
+
+            <Style x:Key="Menu"
+                   TargetType="RadioButton">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Grid x:Name="chk_parent" SnapsToDevicePixels="True"
+                                  Background="{Binding Path=Background, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                                <StackPanel Orientation="Horizontal"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center">
+                                    <Image Source="{Binding Path=Tag, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                                           Width="20"
+                                           Height="20"
+                                           Margin="0 0 10 0"></Image>
+                                    <TextBlock Text="{Binding Path=Content, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                                               Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                                               FontSize="{Binding Path=FontSize, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                                               FontFamily="{Binding Path=FontFamily, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                                               FontWeight="{Binding Path=FontWeight, RelativeSource={RelativeSource Mode=TemplatedParent}}"></TextBlock>
+                                </StackPanel>
+                                <Border x:Name="chk"
+                                        BorderThickness="2"
+                                        BorderBrush="Red"
+                                        Margin="5 0 5 0"
+                                        Height="2"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Bottom">
+                                    <Border.Tag>
+                                        <system:Double>0.0</system:Double>
+                                    </Border.Tag>
+                                    <Border.Width>
+                                        <MultiBinding Converter="{StaticResource MultiplyConverter}">
+                                            <Binding Path="ActualWidth"
+                                                     ElementName="chk_parent" />
+                                            <Binding Path="Tag"
+                                                     RelativeSource="{RelativeSource Self}" />
+                                        </MultiBinding>
+                                    </Border.Width>
+                                </Border>
+
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Path=IsChecked, RelativeSource={RelativeSource Mode=Self}}"
+                                             Value="True">
+                                    <DataTrigger.Setters>
+                                        <Setter Property="BorderBrush"
+                                                Value="Green"
+                                                TargetName="chk" />
+                                        <Setter Property="Tag"
+                                                TargetName="chk">
+                                            <Setter.Value>
+                                                <system:Double>1.0</system:Double>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger.Setters>
+                                </DataTrigger>
+
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding RelativeSource={RelativeSource Mode=Self}, Path=IsMouseOver}"
+                                                   Value="False" />
+                                        <Condition Binding="{Binding Path=IsChecked, RelativeSource={RelativeSource Mode=Self}}"
+                                                   Value="False" />
+                                    </MultiDataTrigger.Conditions>
+                                    <MultiDataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation From="1"
+                                                                 To="0"
+                                                                 Duration="00:00:00.2"
+                                                                 Storyboard.TargetName="chk"
+                                                                 Storyboard.TargetProperty="Tag">
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </MultiDataTrigger.EnterActions>
+                                    <MultiDataTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation From="0"
+                                                                 To="1"
+                                                                 Duration="00:00:00.2"
+                                                                 Storyboard.TargetName="chk"
+                                                                 Storyboard.TargetProperty="Tag">
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </MultiDataTrigger.ExitActions>
+                                </MultiDataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="MenuBtn"
+                   TargetType="Button">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Grid x:Name="border"
+                                  Background="{Binding Path=Background, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                                <Line x:Name="ln1"
+                                      Stroke="{StaticResource WindowForeground}"
+                                      StrokeThickness="2"
+                                      X1="5"
+                                      X2="20"
+                                      Y1="8"
+                                      Y2="8"></Line>
+                                <Line x:Name="ln2"
+                                      Stroke="{StaticResource WindowForeground}"
+                                      StrokeThickness="2"
+                                      X1="5"
+                                      X2="20"
+                                      Y1="13"
+                                      Y2="13"></Line>
+                                <Line x:Name="ln3"
+                                      Stroke="{StaticResource WindowForeground}"
+                                      StrokeThickness="2"
+                                      X1="5"
+                                      X2="20"
+                                      Y1="18"
+                                      Y2="18"></Line>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver"
+                                         Value="True">
+                                    <Setter TargetName="border"
+                                            Property="Background"
+                                            Value="{StaticResource TitleBarButtonMouseOver}" />
+                                    <Setter TargetName="ln1"
+                                            Property="Stroke"
+                                            Value="#000000" />
+                                    <Setter TargetName="ln2"
+                                            Property="Stroke"
+                                            Value="#000000" />
+                                    <Setter TargetName="ln3"
+                                            Property="Stroke"
+                                            Value="#000000" />
+                                    <Setter TargetName="ln1"
+                                            Property="StrokeThickness"
+                                            Value="1" />
+                                    <Setter TargetName="ln2"
+                                            Property="StrokeThickness"
+                                            Value="1" />
+                                    <Setter TargetName="ln3"
+                                            Property="StrokeThickness"
+                                            Value="1" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+
+    </Window.Resources>
+
+    <!--Title bar button commands-->
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Close" />
+        <CommandBinding Command="{x:Static SystemCommands.MaximizeWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Maximize" />
+        <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Minimize" />
+        <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Restore" />
+    </Window.CommandBindings>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="25" />
+    </WindowChrome.WindowChrome>
+
+    <Border x:Name="MainWindowBorder"
+            BorderBrush="Black"
+            BorderThickness="0">
+        <Grid x:Name="parentContainer"
+              Background="{StaticResource WindowBackground}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--Window chrome-->
+            <Grid Grid.Row="0"
+                  Height="25"
+                  Background="{StaticResource TitleBarBrush}">
+                <TextBlock Text="{Binding Title,RelativeSource={RelativeSource FindAncestor,AncestorType=local:MainWindow}}"
+                           TextTrimming="CharacterEllipsis"
+                           FontFamily="Arial"
+                           Foreground="{StaticResource WindowForeground}"
+                           TextAlignment="Center"
+                           Margin="0,5,0,0"
+                           Padding="0"
+                           Name="txtTitle" />
+                <!--Caption buttons-->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Name="TitleButtons">
+                    <Button Style="{StaticResource MinimizeButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Minimize"
+                            Command="{x:Static SystemCommands.MinimizeWindowCommand}" />
+                    <Button x:Name="RestoreButton"
+                            Visibility="Collapsed"
+                            Style="{StaticResource RestoreButtonStyle}"
+                            Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Restore" />
+                    <Button Style="{StaticResource CloseButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Close"
+                            Command="{x:Static SystemCommands.CloseWindowCommand}" />
+                </StackPanel>
+                <Button WindowChrome.IsHitTestVisibleInChrome="True"
+                        Cursor="Hand"
+                        Style="{StaticResource MenuBtn}"
+                        Content="Button"
+                        HorizontalAlignment="Left"
+                        Width="25"
+                        Background="{StaticResource TitleBarBrush}"
+                        Margin="0,0,0,0.333"
+                        Name="MenuBtn"
+                        Click="MenuBtn_Click">
+                    <Button.ContextMenu>
+                        <ContextMenu Name="MenuContextMenu">
+                            <MenuItem Header="Settings">
+
+                            </MenuItem>
+                            <Separator></Separator>
+                            <MenuItem Header="About"
+                                      Click="MenuItem_Click">
+                                
+                            </MenuItem>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+            </Grid>
+
+            <Grid Grid.Row="1"
+                  Height="36"
+                  VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <RadioButton Style="{StaticResource Menu}"
+                             Cursor="Hand"
+                             Content="Booster"
+                             Background="{StaticResource WindowBackground}"
+                             FontSize="14"
+                             FontFamily="Bahnschrift Light"
+                             BorderBrush="#FF858585"
+                             Foreground="{StaticResource WindowForeground}"
+                             Tag="pack://application:,,,/Images/shuttle1.png"
+                             FontWeight="Medium"
+                             IsChecked="True"
+                             Checked="RadioButton_Checked" />
+                <RadioButton Style="{StaticResource Menu}"
+                             Cursor="Hand"
+                             Content="Games"
+                             Grid.Row="0"
+                             Grid.Column="1"
+                             Background="{StaticResource WindowBackground}"
+                             FontSize="14"
+                             FontFamily="Bahnschrift Light"
+                             Foreground="{StaticResource WindowForeground}"
+                             Tag="pack://application:,,,/Images/console.png"
+                             FontWeight="Medium"
+                             Checked="RadioButton_Checked_1" />
+                <RadioButton Style="{StaticResource Menu}"
+                             Cursor="Hand"
+                             Content="Tweak"
+                             Grid.Row="0"
+                             Grid.Column="2"
+                             Background="{StaticResource WindowBackground}"
+                             FontSize="14"
+                             FontFamily="Bahnschrift Light"
+                             Foreground="{StaticResource WindowForeground}"
+                             Tag="pack://application:,,,/Images/tweak.png"
+                             FontWeight="Medium"
+                             Checked="RadioButton_Checked_2" />
+                <RadioButton Style="{StaticResource Menu}"
+                             Cursor="Hand"
+                             Content="Temperature"
+                             Grid.Row="0"
+                             Grid.Column="3"
+                             Background="{StaticResource WindowBackground}"
+                             FontSize="14"
+                             FontFamily="Bahnschrift Light"
+                             Foreground="{StaticResource WindowForeground}"
+                             Tag="pack://application:,,,/Images/thermometer.png"
+                             FontWeight="Medium"
+                             Checked="RadioButton_Checked_3" />
+            </Grid>
+            <!--App content-->
+            <Border Grid.Row="2"
+                    x:Name="AppArea">
+                <Grid>
+                    <Frame NavigationUIVisibility="Hidden" x:Name="PageView">
+                        
+                    </Frame>
+                    </Grid>
+            </Border>
+
+            <materialDesign:DialogHost Style="{StaticResource MaterialDesignEmbeddedDialogHost}"
+                                       DialogMargin="8"
+                                       Name="AboutDlg"
+                                       Margin="0"
+                                       Grid.RowSpan="3"
+                                       CloseOnClickAway="True">
+                <materialDesign:DialogHost.DialogContent >
+                    <StackPanel Margin="16">
+                        <Image Margin="0 0 0 3" Source="pack://application:,,,/Images/Logo.png"
+                               Height="50"></Image>
+                        <TextBlock Margin="0 0 0 4" TextAlignment="Center" Text="© 2021-2022 Raden. Inc" />
+                        <TextBlock Text="Raden Booster for Speed Up Operating System" />
+                        <TextBlock Text="By Roland Vincent Sitanggang" />
+                        <Button Margin="0 8 0 0"
+                                IsDefault="True"
+                                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                                Style="{DynamicResource MaterialDesignFlatButton}"
+                                Content="OK" />
+                    </StackPanel>
+                </materialDesign:DialogHost.DialogContent>
+            </materialDesign:DialogHost>
+
+        </Grid>
+    </Border>
+</Window>

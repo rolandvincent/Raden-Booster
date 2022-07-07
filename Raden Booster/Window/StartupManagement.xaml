@@ -1,0 +1,316 @@
+﻿<Window x:Class="Raden_Booster.StartupManagement"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Raden_Booster"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Startup Management"
+        Height="546.546"
+        Width="539"
+        WindowStyle="None"
+        SizeChanged="Window_SizeChanged"
+        Loaded="Window_Loaded"
+        IsVisibleChanged="Window_IsVisibleChanged">
+    <!--Title bar button commands-->
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Close" />
+        <CommandBinding Command="{x:Static SystemCommands.MaximizeWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Maximize" />
+        <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Minimize" />
+        <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Restore" />
+    </Window.CommandBindings>
+
+    <Window.Resources>
+        <local:BoolValueConverter x:Key="BoolValueConverter" />
+    </Window.Resources>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="25" />
+    </WindowChrome.WindowChrome>
+
+    <Border x:Name="MainWindowBorder"
+            BorderBrush="Black"
+            BorderThickness="0">
+        <Grid x:Name="parentContainer"
+              Background="{StaticResource WindowBackground}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--Window chrome-->
+            <Grid Grid.Row="0"
+                  Height="25"
+                  Background="{StaticResource TitleBarBrush}">
+                <TextBlock Text="{Binding Title,RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor,AncestorLevel=1}}"
+                           TextTrimming="CharacterEllipsis"
+                           FontFamily="Arial"
+                           Foreground="{StaticResource WindowForeground}"
+                           TextAlignment="Center"
+                           Margin="0,5,0,0"
+                           Padding="0"
+                           Name="txtTitle" />
+                <!--Caption buttons-->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Name="TitleButtons">
+                    <Button Style="{StaticResource MinimizeButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Minimize"
+                            Command="{x:Static SystemCommands.MinimizeWindowCommand}" />
+                    <Button x:Name="RestoreButton"
+                            Visibility="Collapsed"
+                            Style="{StaticResource RestoreButtonStyle}"
+                            Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Restore" />
+                    <Button Style="{StaticResource CloseButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Close"
+                            Command="{x:Static SystemCommands.CloseWindowCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <materialDesign:Card x:Name="statusmessage"
+                                 materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                 Background="DarkOrange"
+                                 Height="0"
+                                 Grid.Row="1"
+                                 VerticalAlignment="Top">
+                <Grid UseLayoutRounding="True">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Height="25"
+                            VerticalAlignment="Bottom">
+                        <TextBlock Foreground="{StaticResource WindowForegroundWhite}"
+                                   x:Name="statustext"
+                                   TextTrimming="CharacterEllipsis"
+                                   FontFamily="Bahnscrift"
+                                   Padding="10 0"
+                                   VerticalAlignment="Center">
+                    <Run Foreground="Yellow">Info!</Run>
+                    <Run Foreground="White">Enable and disable not work on Windows 7 or older</Run>
+                        </TextBlock>
+                    </Border>
+                    <Button Grid.Column="1"
+                            VerticalAlignment="Bottom"
+                            HorizontalAlignment="Left"
+                            Padding="5 0"
+                            Height="25"
+                            BorderThickness="0"
+                            ToolTip="Dismiss"
+                            Click="MessageDismiss"
+                            Background="Transparent">
+                        <materialDesign:PackIcon Kind="Close"
+                                                 VerticalAlignment="Stretch"
+                                                 HorizontalAlignment="Stretch"
+                                                 Margin="0"
+                                                 Foreground="{StaticResource WindowForegroundWhite}" />
+                    </Button>
+                </Grid>
+
+            </materialDesign:Card>
+
+            <!--App content-->
+            <Border Grid.Row="2"
+                    x:Name="AppArea">
+                <Grid>
+                    <ListView ScrollViewer.CanContentScroll="True"
+                              x:Name="startuplist"
+                              ContextMenuOpening="startuplist_ContextMenuOpening">
+                        <ListView.ContextMenu>
+                            <ContextMenu Name="ctx">
+                                <MenuItem x:Name="open"
+                                          Header="Open File Location"
+                                          Click="open_Click"></MenuItem>
+                                <Separator />
+                                <MenuItem x:Name="remove"
+                                          Header="Remove"
+                                          Click="remove_Click"></MenuItem>
+                            </ContextMenu>
+                        </ListView.ContextMenu>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment"
+                                        Value="Stretch" />
+                                <Setter Property="BorderBrush"
+                                        Value="#444"></Setter>
+                                <Setter Property="BorderThickness"
+                                        Value="0,0,0,1"></Setter>
+                                <Setter Property="Height"
+                                        Value="40"></Setter>
+                                <Setter Property="Margin"
+                                        Value="0 0 0 -1"></Setter>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="border"
+                                                    Margin="0"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    Padding="0"
+                                                    Height="{TemplateBinding Height}">
+                                                <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"></GridViewRowPresenter>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected"
+                                                         Value="True">
+                                                    <Setter Property="Background"
+                                                            Value="#666666"
+                                                            TargetName="border"></Setter>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected"
+                                                         Value="False">
+                                                    <Setter Property="Background"
+                                                            Value="#0333"
+                                                            TargetName="border"></Setter>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver"
+                                                         Value="True">
+                                                    <Setter Property="Background"
+                                                            Value="#555"
+                                                            TargetName="border"></Setter>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.View>
+                            <GridView>
+                                <GridView.Columns>
+                                    <GridViewColumn>
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader BorderBrush="White"
+                                                                  Foreground="{StaticResource WindowForeground}"
+                                                                  Padding="4"
+                                                                  >
+                                                <TextBlock Text="#"></TextBlock>
+                                            </GridViewColumnHeader>
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Image Height="30"
+                                                       Source="{Binding Icon}"></Image>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="150">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader BorderBrush="White"
+                                                                  Foreground="{StaticResource WindowForeground}"
+                                                                  Padding="4"
+                                                                  Tag="Name"
+                                                                  VerticalContentAlignment="Stretch"
+                                                                  HorizontalContentAlignment="Stretch"
+                                                                  Click="GridViewColumnHeader_Click">
+                                                <TextBlock Text="App Name" TextTrimming="CharacterEllipsis" HorizontalAlignment="Stretch"></TextBlock>
+                                            </GridViewColumnHeader>
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Path=Name, FallbackValue=NULL}"
+                                                           TextTrimming="CharacterEllipsis"></TextBlock>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="150">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader BorderBrush="White"
+                                                                  Foreground="{StaticResource WindowForeground}"
+                                                                  Padding="4"
+                                                                  VerticalContentAlignment="Stretch"
+                                                                  HorizontalContentAlignment="Stretch"
+                                                                  Tag="Publisher"
+                                                                  Click="GridViewColumnHeader_Click">
+                                                <TextBlock Text="Publisher"
+                                                           TextTrimming="CharacterEllipsis"></TextBlock>
+                                            </GridViewColumnHeader>
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Publisher}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Width="auto"></TextBlock>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn>
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader BorderBrush="White"
+                                                                  Foreground="{StaticResource WindowForeground}"
+                                                                  Padding="4"
+                                                                  VerticalContentAlignment="Stretch"
+                                                                  HorizontalContentAlignment="Stretch"
+                                                                  Tag="StartupPath"
+                                                                  Click="GridViewColumnHeader_Click">
+                                                <TextBlock Text="Startup Location"
+                                                           TextTrimming="CharacterEllipsis"></TextBlock>
+                                            </GridViewColumnHeader>
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding StartupPath}"
+                                                           TextTrimming="CharacterEllipsis"></TextBlock>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn>
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader BorderBrush="White"
+                                                                  Foreground="{StaticResource WindowForeground}"
+                                                                  Content="Enabled"
+                                                                  Padding="4"
+                                                                  Width="auto"></GridViewColumnHeader>
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ToggleButton IsChecked="{Binding Enabled}" IsEnabled="{Binding SupportEnabled}"></ToggleButton>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView.Columns>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <materialDesign:DialogHost Style="{StaticResource MaterialDesignEmbeddedDialogHost}"
+                                               DialogMargin="8"
+                                               Name="ErrorDlg"
+                                               Margin="0"
+                                               Grid.RowSpan="3"
+                                               CloseOnClickAway="True">
+                        <materialDesign:DialogHost.DialogContent>
+                            <StackPanel Margin="16">
+                                <TextBlock x:Name="message"
+                                           Text="The operation cannot be completed. Access Denied."
+                                           FontSize="16"
+                                           HorizontalAlignment="Center" />
+                                <Button Margin="0 8 0 0"
+                                        IsDefault="True"
+                                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                                        Style="{DynamicResource MaterialDesignFlatButton}"
+                                        Content="OK" />
+                            </StackPanel>
+                        </materialDesign:DialogHost.DialogContent>
+                    </materialDesign:DialogHost>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

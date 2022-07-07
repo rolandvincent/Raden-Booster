@@ -1,0 +1,123 @@
+﻿<Page x:Class="Raden_Booster.Tweak"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:Raden_Booster"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="Tweak">
+
+    <Page.Resources>
+        <Style x:Key="Hoverbtn" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="10"
+                                Padding="5">
+                            <ContentPresenter Content="{TemplateBinding Content}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter Property="Background"
+                                        Value="#50000000"
+                                        TargetName="border" />
+                            </Trigger>
+                            <Trigger Property="IsMouseCaptured"
+                                     Value="True">
+                                <Setter Property="Background"
+                                        Value="#20FFFFFF"
+                                        TargetName="border" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="WPNone"
+               TargetType="WrapPanel">
+            
+        </Style>
+    </Page.Resources>
+
+    <Grid>
+        <WrapPanel Margin="20" Style="{StaticResource WPNone}">
+            <Button Background="Transparent"
+                    BorderBrush="Transparent"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource Hoverbtn}"
+                    Height="auto"
+                    Margin="10"
+                    VerticalAlignment="Top"
+                    MinWidth="120"
+                    ToolTip="Cleaner"
+                    Click="Button_Click_2">
+                <StackPanel Orientation="Vertical">
+                    <Image Height="60"
+                           Source="pack://application:,,,/Images/broom.png">
+
+                    </Image>
+                    <Label Content="Cleaner"
+                           Margin="0 10 0 0"
+                           FontSize="16"
+                           FontFamily="Bahnschrift Light"
+                           Foreground="White"
+                           HorizontalAlignment="Center"></Label>
+                </StackPanel>
+
+            </Button>
+            <Button Background="Transparent"
+                    BorderBrush="Transparent"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource Hoverbtn}"
+                    Height="auto"
+                    Margin="10"
+                    VerticalAlignment="Top"
+                    MinWidth="120"
+                    ToolTip="Startup Manager"
+                    Click="Button_Click_1">
+                <StackPanel Orientation="Vertical">
+                    <Image Height="60"
+                           Source="pack://application:,,,/Images/time.png">
+
+                    </Image>
+                    <Label Content="Startup Manager"
+                           Margin="0 10 0 0"
+                           FontSize="16"
+                           FontFamily="Bahnschrift Light"
+                           Foreground="White"
+                           HorizontalAlignment="Center"></Label>
+                </StackPanel>
+
+            </Button>
+            <Button Background="Transparent"
+                    BorderBrush="Transparent"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource Hoverbtn}"
+                    Height="auto"
+                    Margin="10"
+                    VerticalAlignment="Top"
+                    MinWidth="120"
+                    ToolTip="Task Manager"
+                    Click="Button_Click">
+                <StackPanel Orientation="Vertical">
+                    <Image Height="60"
+                           Source="pack://application:,,,/Images/paste.png">
+
+                    </Image>
+                    <Label Content="Task Manager"
+                           Margin="0 10 0 0"
+                           FontSize="16"
+                           FontFamily="Bahnschrift Light"
+                           Foreground="White"
+                           HorizontalAlignment="Center"></Label>
+                </StackPanel>
+
+            </Button>
+        </WrapPanel>
+    </Grid>
+</Page>

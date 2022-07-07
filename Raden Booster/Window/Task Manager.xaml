@@ -1,0 +1,691 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Raden_Booster"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        x:Class="Raden_Booster.Task_Manager"
+        mc:Ignorable="d"
+        Title="Task Manager"
+        Height="621"
+        Width="548"
+        WindowStyle="None"
+        SizeChanged="Window_SizeChanged"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <local:UsageValueConverter x:Key="usageConverter"></local:UsageValueConverter>
+        <local:StatusValueConverter x:Key="StatusConverter"></local:StatusValueConverter>
+        <Style x:Key="HeaderHidden"
+               TargetType="{x:Type GridViewColumnHeader}">
+            <Setter Property="Visibility"
+                    Value="Collapsed" />
+        </Style>
+        <Style TargetType="ListViewItem">
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch" />
+        </Style>
+    </Window.Resources>
+
+
+    <!--Title bar button commands-->
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Close" />
+        <CommandBinding Command="{x:Static SystemCommands.MaximizeWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Maximize" />
+        <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Minimize" />
+        <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                        CanExecute="CommandBinding_CanExecute"
+                        Executed="CommandBinding_Executed_Restore" />
+    </Window.CommandBindings>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="25" />
+    </WindowChrome.WindowChrome>
+
+    <Border x:Name="MainWindowBorder"
+            BorderBrush="Black"
+            BorderThickness="0">
+        <Grid x:Name="parentContainer"
+              Background="{StaticResource WindowBackground}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--Window chrome-->
+            <Grid Grid.Row="0"
+                  Height="25"
+                  Background="{StaticResource TitleBarBrush}">
+                <TextBlock Text="{Binding Title,RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor,AncestorLevel=1}}"
+                           TextTrimming="CharacterEllipsis"
+                           FontFamily="Arial"
+                           Foreground="{StaticResource WindowForeground}"
+                           TextAlignment="Center"
+                           Margin="0,5,0,0"
+                           Padding="0"
+                           Name="txtTitle" />
+                <!--Caption buttons-->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Name="TitleButtons">
+                    <Button Style="{StaticResource MinimizeButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Minimize"
+                            Command="{x:Static SystemCommands.MinimizeWindowCommand}" />
+                    <Button x:Name="RestoreButton"
+                            Visibility="Collapsed"
+                            Style="{StaticResource RestoreButtonStyle}"
+                            Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Restore" />
+                    <Button Style="{StaticResource CloseButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Close"
+                            Command="{x:Static SystemCommands.CloseWindowCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <!--App content-->
+            <Border Grid.Row="2"
+                    x:Name="AppArea">
+                <Grid>
+                    <Menu Height="auto"
+                          VerticalAlignment="Top"
+                          materialDesign:TextFieldAssist.UnderlineBrush="Red"
+                          FontSize="12">
+                        <MenuItem Header="_File"
+                                  Height="20">
+                            <MenuItem Header="_Run"
+                                      Click="RunMenuClick"></MenuItem>
+                            <Separator />
+                            <MenuItem Header="E_xit"
+                                      Click="exitMenuClick"></MenuItem>
+                        </MenuItem>
+                        <MenuItem Header="_Options"
+                                  Height="20">
+                            <MenuItem x:Name="topmost"
+                                      Header="_Always on top"
+                                      Checked="MenuItem_Checked"
+                                      Unchecked="MenuItem_Checked"
+                                      IsCheckable="True" />
+                        </MenuItem>
+                    </Menu>
+                    <Grid Margin="0,20,0.333,0">
+                        <TabControl Style="{StaticResource MaterialDesignNavigatilRailTabControl}"
+                                    TabStripPlacement="Top">
+                            <TabItem Header="Process"
+                                     Padding="20 5 20 5"
+                                     Margin="0"
+                                     Height="auto"
+                                     Width="auto"
+                                     Style="{StaticResource MaterialDesignNavigationRailTabItem}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="500*" />
+                                        <RowDefinition Height="39*" />
+                                    </Grid.RowDefinitions>
+                                    <ListView x:Name="xlist"
+                                              SelectionMode="Single"
+                                              IsManipulationEnabled="True"
+                                              Margin="0,0,-0.333,0"
+                                              ContextMenuOpening="xlist_ContextMenuOpening"
+                                              Grid.RowSpan="1">
+                                        <ListView.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem x:Name="lv_action"
+                                                          Header="Action">
+                                                    <MenuItem x:Name="lv_restart"
+                                                              Header="Restart"
+                                                              Click="lv_restart_Click"/>
+                                                    <MenuItem x:Name="lv_suspend"
+                                                              Header="Suspend" 
+                                                              Click="lv_suspend_Click"/>
+                                                    <MenuItem x:Name="lv_resume"
+                                                              Header="Resume"
+                                                              Click="lv_resume_Click"/>
+                                                    <MenuItem x:Name="lv_endprocess"
+                                                              Header="End Process"
+                                                              Click="endprocess_Click" />
+                                                </MenuItem>
+                                                <Separator />
+                                                <MenuItem x:Name="lv_open"
+                                                          Click="open_Click"
+                                                          Header="Open File Location" />
+                                                <MenuItem x:Name="lv_properties"
+                                                          Header="Properties"
+                                                          Click="properties_Click" />
+                                            </ContextMenu>
+                                        </ListView.ContextMenu>
+                                        <ListView.View>
+                                            <GridView AllowsColumnReorder="True">
+                                                <GridViewColumn Width="35">
+                                                    <GridViewColumn.Header>
+                                                        <GridViewColumnHeader Tag="Icon"
+                                                                              Padding="5 0 5 0"
+                                                                              VerticalAlignment="Stretch"
+                                                                              Content="#">
+                                                        </GridViewColumnHeader>
+                                                    </GridViewColumn.Header>
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <Image Source="{Binding Icon}"
+                                                                   Width="20"
+                                                                   Height="20"></Image>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn>
+                                                    <GridViewColumn.Header>
+                                                        <GridViewColumnHeader Tag="Name"
+                                                                              Padding="3 5 0 5"
+                                                                              Cursor="Hand"
+                                                                              VerticalContentAlignment="Stretch"
+                                                                              HorizontalContentAlignment="Stretch"
+                                                                              Click="GridViewColumnHeader_Click">
+                                                            <TextBlock Text="Name"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       VerticalAlignment="Bottom"></TextBlock>
+
+                                                        </GridViewColumnHeader>
+                                                    </GridViewColumn.Header>
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Height="20"
+                                                                       Text="{Binding Name}"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn>
+                                                    <GridViewColumn.Header>
+                                                        <GridViewColumnHeader Tag="Title"
+                                                                              x:Name="lh_title"
+                                                                              Visibility="Collapsed"
+                                                                              Padding="3 5 0 5"
+                                                                              Cursor="Hand"
+                                                                              VerticalContentAlignment="Stretch"
+                                                                              HorizontalContentAlignment="Stretch"
+                                                                              Click="GridViewColumnHeader_Click">
+                                                            <TextBlock Text="Title"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </GridViewColumnHeader>
+                                                    </GridViewColumn.Header>
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Height="20"
+                                                                       Text="{Binding Title, FallbackValue=0, TargetNullValue=0}"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Width="50">
+                                                    <GridViewColumn.Header>
+                                                        <GridViewColumnHeader Tag="PID"
+                                                                              Padding="3 5 0 5"
+                                                                              Cursor="Hand"
+                                                                              VerticalContentAlignment="Stretch"
+                                                                              HorizontalContentAlignment="Stretch"
+                                                                              Click="GridViewColumnHeader_Click">
+                                                            <TextBlock Text="PID"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </GridViewColumnHeader>
+                                                    </GridViewColumn.Header>
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Height="20"
+                                                                       Text="{Binding PID}"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn>
+                                                    <GridViewColumn.Header>
+                                                        <GridViewColumnHeader Tag="Status"
+                                                                              x:Name="lh_status"
+                                                                              Padding="3 5 0 5"
+                                                                              Cursor="Hand"
+                                                                              VerticalContentAlignment="Stretch"
+                                                                              HorizontalContentAlignment="Stretch"
+                                                                              Click="GridViewColumnHeader_Click">
+                                                            <TextBlock Text="Status"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </GridViewColumnHeader>
+                                                    </GridViewColumn.Header>
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Height="20"
+                                                                       Text="{Binding Status}"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Width="80">
+                                                    <GridViewColumn.Header>
+                                                        <GridViewColumnHeader Tag="Memory"
+                                                                              x:Name="lh_memory"
+                                                                              Padding="3 5 0 5"
+                                                                              Cursor="Hand"
+                                                                              VerticalContentAlignment="Stretch"
+                                                                              HorizontalContentAlignment="Stretch"
+                                                                              Click="GridViewColumnHeader_Click">
+                                                            <TextBlock Text="Memory"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </GridViewColumnHeader>
+                                                    </GridViewColumn.Header>
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Height="20"
+                                                                       Text="{Binding Memory, Converter={StaticResource usageConverter}}"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Width="300">
+                                                    <GridViewColumn.Header>
+                                                        <GridViewColumnHeader Tag="Location"
+                                                                              x:Name="lh_location"
+                                                                              Padding="3 5 0 5"
+                                                                              Cursor="Hand"
+                                                                              VerticalContentAlignment="Stretch"
+                                                                              HorizontalContentAlignment="Stretch"
+                                                                              Click="GridViewColumnHeader_Click">
+                                                            <TextBlock Text="Location"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </GridViewColumnHeader>
+                                                    </GridViewColumn.Header>
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Height="20"
+                                                                       Text="{Binding Location}"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Width="300">
+                                                    <GridViewColumn.Header>
+                                                        <GridViewColumnHeader Tag="CommandLine"
+                                                                              x:Name="lh_cmdline"
+                                                                              Padding="3 5 0 5"
+                                                                              Cursor="Hand"
+                                                                              VerticalContentAlignment="Stretch"
+                                                                              HorizontalContentAlignment="Stretch"
+                                                                              Click="GridViewColumnHeader_Click">
+                                                            <TextBlock Text="Command Line"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </GridViewColumnHeader>
+                                                    </GridViewColumn.Header>
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Height="20"
+                                                                       Text="{Binding CommandLine}"
+                                                                       TextTrimming="CharacterEllipsis"></TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridView.ColumnHeaderContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Status"
+                                                                  IsCheckable="True"
+                                                                  IsChecked="True"
+                                                                  Checked="Status_Checked"
+                                                                  Unchecked="Status_Unchecked" />
+                                                        <MenuItem Header="Title"
+                                                                  IsCheckable="True" />
+                                                        <MenuItem Header="Memory"
+                                                                  IsCheckable="True"
+                                                                  IsChecked="True" />
+                                                        <MenuItem Header="Location"
+                                                                  IsCheckable="True" />
+                                                        <MenuItem Header="Command Line"
+                                                                  IsCheckable="True" />
+                                                        <MenuItem Header="CPU Usage"
+                                                                  IsCheckable="True" />
+                                                    </ContextMenu>
+                                                </GridView.ColumnHeaderContextMenu>
+                                            </GridView>
+
+                                        </ListView.View>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="Height"
+                                                        Value="25" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListViewItem">
+                                                            <Border x:Name="border"
+                                                                    Background="{TemplateBinding Background}">
+                                                                <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <MultiTrigger>
+                                                                    <MultiTrigger.Conditions>
+                                                                        <Condition Property="IsMouseOver"
+                                                                                   Value="true" />
+                                                                        <Condition Property="IsSelected"
+                                                                                   Value="true" />
+                                                                    </MultiTrigger.Conditions>
+                                                                    <Setter Property="Background"
+                                                                            TargetName="border"
+                                                                            Value="{StaticResource WindowForegroundWhite}" />
+                                                                    <Setter Property="Foreground"
+                                                                            Value="{StaticResource WindowsBlack}" />
+                                                                </MultiTrigger>
+                                                                <MultiTrigger>
+                                                                    <MultiTrigger.Conditions>
+                                                                        <Condition Property="IsMouseOver"
+                                                                                   Value="false" />
+                                                                        <Condition Property="IsSelected"
+                                                                                   Value="true" />
+                                                                    </MultiTrigger.Conditions>
+                                                                    <Setter Property="Background"
+                                                                            TargetName="border"
+                                                                            Value="{StaticResource WindowForegroundWhite}" />
+                                                                    <Setter Property="Foreground"
+                                                                            Value="{StaticResource WindowsBlack}" />
+                                                                </MultiTrigger>
+                                                                <MultiTrigger>
+                                                                    <MultiTrigger.Conditions>
+                                                                        <Condition Property="IsMouseOver"
+                                                                                   Value="true" />
+                                                                        <Condition Property="IsSelected"
+                                                                                   Value="false" />
+                                                                    </MultiTrigger.Conditions>
+                                                                    <Setter Property="Background"
+                                                                            TargetName="border"
+                                                                            Value="#666" />
+                                                                    <Setter Property="Foreground"
+                                                                            Value="{StaticResource MaterialDesignLightBackground}" />
+                                                                </MultiTrigger>
+                                                                <DataTrigger Binding="{Binding State}"
+                                                                             Value="2">
+                                                                    <Setter Property="Background"
+                                                                            TargetName="border"
+                                                                            Value="Red" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding State}"
+                                                                             Value="1">
+                                                                    <Setter Property="Background"
+                                                                            TargetName="border"
+                                                                            Value="Green" />
+                                                                </DataTrigger>
+                                                            </ControlTemplate.Triggers>
+
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+                                    <Grid Grid.Row="1">
+                                        <Button Margin="5 0 5 0"
+                                                Content="End Process"
+                                                HorizontalAlignment="Right"
+                                                Click="Button_Click"></Button>
+                                    </Grid>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Header="Performance"
+                                     Padding="20 5 20 5"
+                                     Margin="0"
+                                     Height="auto"
+                                     Width="auto"
+                                     Style="{StaticResource MaterialDesignNavigationRailTabItem}">
+                                <TabControl Style="{StaticResource MaterialDesignNavigatilRailTabControl}">
+                                    <TabItem Style="{StaticResource MaterialDesignNavigationRailTabItem}"
+                                             Height="120"
+                                             Width="100">
+                                        <TabItem.Header>
+                                            <StackPanel>
+                                                <Label Style="{StaticResource MaterialDesignLabel}"
+                                                       FontSize="20"
+                                                       Margin="0"
+                                                       Padding="0"
+                                                       HorizontalAlignment="Center">CPU</Label>
+                                                <Label Name="cpuheader"
+                                                       Style="{StaticResource MaterialDesignLabel}"
+                                                       FontSize="16"
+                                                       Margin="0"
+                                                       Padding="0"
+                                                       HorizontalAlignment="Center">100%</Label>
+
+                                            </StackPanel>
+                                        </TabItem.Header>
+                                        <StackPanel>
+                                            <Grid Margin="3">
+                                                <Label FontSize="14">CPU</Label>
+                                                <Label x:Name="cputype"
+                                                       FontSize="14"
+                                                       HorizontalAlignment="Right"></Label>
+                                            </Grid>
+                                            <lvc:CartesianChart Name="CpuConterGraph"
+                                                                Height="150"
+                                                                DisableAnimations="True"
+                                                                VerticalAlignment="Top"
+                                                                Margin="10"
+                                                                Pan="None">
+                                                <lvc:CartesianChart.AxisY>
+                                                    <lvc:Axis Name="Axis"
+                                                              MaxValue="100"
+                                                              MinValue="0" />
+                                                </lvc:CartesianChart.AxisY>
+                                            </lvc:CartesianChart>
+                                            <Grid Margin="10 0 10 0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Orientation="Vertical"
+                                                            Margin="3">
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Utilization:</Label>
+                                                        <Label Name="cpulabel"
+                                                               FontSize="14"
+                                                               HorizontalAlignment="Right"></Label>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Speed:</Label>
+                                                        <Label Name="cpuspeed"
+                                                               FontSize="14"
+                                                               HorizontalAlignment="Right"></Label>
+                                                    </Grid>
+
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1"
+                                                            Orientation="Vertical"
+                                                            Margin="3">
+                                                    <Grid>
+                                                        <Label FontSize="
+                                                               14"
+                                                               Foreground="{StaticResource WindowForeground}">Base Speed:</Label>
+                                                        <Label Name="CurrentClockSpeed"
+                                                               HorizontalAlignment="Right"
+                                                               FontSize="14"></Label>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Cores:</Label>
+                                                        <Label Name="NumberOfCores"
+                                                               HorizontalAlignment="Right"
+                                                               FontSize="14"></Label>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Logical Processor:</Label>
+                                                        <Label Name="NumberOfLogicalProcessors"
+                                                               HorizontalAlignment="Right"
+                                                               FontSize="14"></Label>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
+                                    </TabItem>
+                                    <TabItem Style="{StaticResource MaterialDesignNavigationRailTabItem}"
+                                             Height="120"
+                                             Width="100">
+                                        <TabItem.Header>
+                                            <StackPanel>
+                                                <Label Style="{StaticResource MaterialDesignLabel}"
+                                                       FontSize="20"
+                                                       Margin="0"
+                                                       Padding="0"
+                                                       HorizontalAlignment="Center">RAM</Label>
+                                                <Label Name="ramheader"
+                                                       Style="{StaticResource MaterialDesignLabel}"
+                                                       FontSize="16"
+                                                       Margin="0"
+                                                       Padding="0"
+                                                       HorizontalAlignment="Center">100%</Label>
+                                            </StackPanel>
+                                        </TabItem.Header>
+                                        <StackPanel>
+                                            <Grid Margin="3">
+                                                <Label FontSize="14">RAM</Label>
+                                                <Label Name="ramlabel"
+                                                       FontSize="14"
+                                                       HorizontalAlignment="Right">8GB</Label>
+                                            </Grid>
+                                            <lvc:CartesianChart Name="RamConterGraph"
+                                                                DisableAnimations="True"
+                                                                Height="150"
+                                                                VerticalAlignment="Top"
+                                                                Margin="10"
+                                                                Pan="None">
+                                                <lvc:CartesianChart.AxisY>
+                                                    <lvc:Axis MinValue="0">
+                                                        <lvc:Axis.Sections>
+                                                            <lvc:AxisSection Name="maxram"
+                                                                             Fill="Red">
+
+                                                            </lvc:AxisSection>
+                                                        </lvc:Axis.Sections>
+                                                    </lvc:Axis>
+                                                </lvc:CartesianChart.AxisY>
+                                            </lvc:CartesianChart>
+                                            <Grid Margin="10 0 10 0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Orientation="Vertical"
+                                                            Margin="3">
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">In Use:</Label>
+                                                        <Label Name="ramusage"
+                                                               FontSize="14"
+                                                               HorizontalAlignment="Right"></Label>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Available:</Label>
+                                                        <Label Name="Available"
+                                                               FontSize="14"
+                                                               HorizontalAlignment="Right"></Label>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Commited:</Label>
+                                                        <Label Name="Commited"
+                                                               FontSize="14"
+                                                               HorizontalAlignment="Right"></Label>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Cached:</Label>
+                                                        <Label Name="Cached"
+                                                               FontSize="14"
+                                                               HorizontalAlignment="Right"></Label>
+                                                    </Grid>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1"
+                                                            Orientation="Vertical"
+                                                            Margin="3">
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Speed:</Label>
+                                                        <Label Name="RAMSpeed"
+                                                               HorizontalAlignment="Right"
+                                                               FontSize="14"></Label>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Label FontSize="14"
+                                                               Foreground="{StaticResource WindowForeground}">Form Factor:</Label>
+                                                        <Label Name="FormFactor"
+                                                               HorizontalAlignment="Right"
+                                                               FontSize="14"></Label>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Grid>
+
+                                        </StackPanel>
+                                    </TabItem>
+                                </TabControl>
+                            </TabItem>
+                            <TabItem Header="Services"
+                                     Padding="20 5 20 5"
+                                     Margin="0"
+                                     Height="auto"
+                                     Width="auto"
+                                     Style="{StaticResource MaterialDesignNavigationRailTabItem}">
+                                <StackPanel Orientation="Vertical"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center">
+                                    <materialDesign:PackIcon Kind="EmoticonSad"
+                                                             Foreground="Orange"
+                                                             HorizontalAlignment="Center"
+                                                             Width="200"
+                                                             Height="200" />
+                                    <Label HorizontalAlignment="Center" 
+                                           FontSize="20"
+                                           FontFamily="Bahnscrift">503 Service Unavailable</Label>
+                                </StackPanel>
+                            </TabItem>
+
+                        </TabControl>
+                    </Grid>
+                    <materialDesign:DialogHost Style="{StaticResource MaterialDesignEmbeddedDialogHost}"
+                                               DialogMargin="8"
+                                               Name="EndProcessDlg"
+                                               Margin="0"
+                                               Grid.RowSpan="3"
+                                               CloseOnClickAway="True">
+                        <materialDesign:DialogHost.DialogContent>
+                            <StackPanel Margin="16">
+                                <TextBlock x:Name="MessageText"
+                                            Text="!"
+                                           FontSize="16"
+                                           HorizontalAlignment="Center" />
+                                <Button Margin="0 8 0 0"
+                                        IsDefault="True"
+                                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                                        Style="{DynamicResource MaterialDesignFlatButton}"
+                                        Content="OK" />
+                            </StackPanel>
+                        </materialDesign:DialogHost.DialogContent>
+                    </materialDesign:DialogHost>
+                    <ProgressBar x:Name="process_load_prog"
+                                 Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                 Visibility="Visible"
+                                 IsHitTestVisible="False"
+                                 Value="0"
+                                 Height="50"
+                                 Width="50"
+                                 IsIndeterminate="True"
+                                 Foreground="{StaticResource WindowForegroundWhite}" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+
+</Window>
